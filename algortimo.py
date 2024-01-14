@@ -9,7 +9,7 @@ numero_de_puntos = 31
 poblacion_maxima = 8
 probabilidad_mutacion_gen = 0.35
 probabilidad_mutacion_individuo = 0.25
-num_generaciones = 2  # Ajusta según tus necesidades
+num_generaciones = 4  # Ajusta según tus necesidades
 porcentaje_seleccion = 0.25  # Puedes ajustar este valor según tus necesidades
 
 # Cálculos iniciales
@@ -59,9 +59,15 @@ def select_parents_percentage(poblacion, evaluaciones, porcentaje):
 
 def select_parents(poblacion, evaluaciones, porcentaje):
     # Obtener los índices de los dos mejores individuos
-    mejores_indices = sorted(range(len(evaluaciones)),
-                             key=lambda i: evaluaciones[i])[:2]
-    return [poblacion[i] for i in mejores_indices]
+    mejores_indices = sorted(range(len(evaluaciones)), key=lambda i: evaluaciones[i])[:2]
+
+    # Asegurarse de que los índices no se repitan
+    nuevos_indices = random.sample(range(len(poblacion)), len(poblacion))
+    while nuevos_indices[:2] == mejores_indices:
+        nuevos_indices = random.sample(range(len(poblacion)), len(poblacion))
+
+    return [poblacion[i] for i in nuevos_indices[:2]]
+
 
 def crossover_multiple_points(nuevas_parejas, prob_mut_gen, num_bits):
     descendencia = []
@@ -173,8 +179,8 @@ for generacion in range(num_generaciones):
             i + 1, individuo, round(x, 6), round(f(x), 6), posicion_individuo))
 
     # Selección de individuos para reproducción (modificada para seleccionar un porcentaje de los mejores)
-   # Selección de individuos para reproducción (modificada para seleccionar un porcentaje de los mejores)
-    seleccionados = select_parents_percentage(poblacion, evaluaciones, porcentaje_seleccion)
+   # Modificación para eliminar duplicados de la lista de mejores individuos
+    seleccionados = list(set(select_parents_percentage(poblacion, evaluaciones, porcentaje_seleccion)))
 
     # Imprimir las parejas de padres
     print("\nMejores individuos:", seleccionados)
