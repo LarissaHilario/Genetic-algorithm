@@ -1,7 +1,6 @@
 import random
 import math
 
-
 # Parámetros dados por el usuario
 poblacion_inicial = 4
 a = 3
@@ -12,7 +11,7 @@ probabilidad_cruza = 0.75
 probabilidad_mutacion_gen = 0.35
 probabilidad_mutacion_individuo = 0.25
 punto_cruza = 3
-num_generaciones = 1  # Ajusta según tus necesidades
+num_generaciones = 2  # Ajusta según tus necesidades
 porcentaje_seleccion = 0.25  # Puedes ajustar este valor según tus necesidades
 
 # Cálculos iniciales
@@ -87,9 +86,9 @@ def mutate(descendencia, prob_mut_gen, prob_mut_individuo):
 
     return descendencia_mutada
 
-# Función de reemplazo de población (reemplazo generacional)
-def replace_population(poblacion, descendencia_mutada):
-    return descendencia_mutada
+# Función para agregar nuevos individuos a la población existente
+def add_new_individuals(poblacion, nuevos_individuos):
+    return poblacion + nuevos_individuos
 
 # Función para encontrar el índice del mejor individuo
 def best_individual_index(evaluaciones):
@@ -147,8 +146,8 @@ for generacion in range(num_generaciones):
     # Aplicar mutación a la descendencia
     descendencia_mutada = mutate(descendencia, probabilidad_mutacion_gen, probabilidad_mutacion_individuo)
 
-    # Reemplazar la población actual con la nueva generación
-    poblacion = replace_population(poblacion, descendencia_mutada)
+    # Agregar nuevos individuos a la población existente
+    poblacion = add_new_individuals(poblacion, descendencia_mutada)
 
 # Obtener el mejor individuo después de todas las generaciones
 mejor_individuo_index = best_individual_index(evaluaciones)
