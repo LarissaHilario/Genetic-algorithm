@@ -1,6 +1,7 @@
 import random
 import math
 
+
 # Parámetros dados por el usuario
 poblacion_inicial = 4
 a = 3
@@ -12,7 +13,7 @@ probabilidad_mutacion_gen = 0.35
 probabilidad_mutacion_individuo = 0.25
 punto_cruza = 3
 num_generaciones = 1  # Ajusta según tus necesidades
-porcentaje_seleccion = 0.75  # Puedes ajustar este valor según tus necesidades
+porcentaje_seleccion = 0.25  # Puedes ajustar este valor según tus necesidades
 
 # Cálculos iniciales
 rango = b - a
@@ -97,14 +98,6 @@ def best_individual_index(evaluaciones):
     else:
         return None
 
-# Función para imprimir las parejas de padres
-  #def print_parent_pairs(seleccionados):
-    #print("Parejas de padres seleccionadas:")
-    #for i in range(0, len(seleccionados), 2):
-     #   padre1 = seleccionados[i]
-      #  padre2 = seleccionados[i + 1] if i + 1 < len(seleccionados) else None
-       # print(f"Padre 1: {padre1}, Padre 2: {padre2}")
-
 # Inicialización de la población
 poblacion = [generate_random_binary_string(num_bits) for _ in range(poblacion_inicial)]
 
@@ -128,9 +121,19 @@ for generacion in range(num_generaciones):
     # Imprimir las parejas de padres
     print("\nMejores individuos:", seleccionados)
     
+    # Inicializar un conjunto para realizar un seguimiento de las combinaciones
+    combinaciones_realizadas = set()
 
-    # Generar nuevas parejas de padres combinando los seleccionados con todos los demás (excepto consigo mismos)
-    nuevas_parejas = [(padre, individuo) for padre in seleccionados for individuo in poblacion if individuo != padre]
+    # Generar nuevas parejas de padres sin duplicados y evitando combinaciones consigo mismos
+    nuevas_parejas = []
+
+    for i, padre in enumerate(seleccionados):
+        for j, individuo in enumerate(poblacion):
+            # Evitar combinaciones consigo mismos y duplicados
+            if padre != individuo  and ((i, j) not in combinaciones_realizadas and (j, i) not in combinaciones_realizadas):
+                nuevas_parejas.append((padre, individuo))
+                # Registrar la combinación realizada
+                combinaciones_realizadas.add((i, j))
 
     # Imprimir las nuevas parejas de padres
     for i, pareja in enumerate(nuevas_parejas):
