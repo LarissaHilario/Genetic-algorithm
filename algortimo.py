@@ -11,7 +11,8 @@ probabilidad_cruza = 0.75
 probabilidad_mutacion_gen = 0.35
 probabilidad_mutacion_individuo = 0.25
 punto_cruza = 3
-num_generaciones = 3  # Ajusta según tus necesidades
+num_generaciones = 1  # Ajusta según tus necesidades
+porcentaje_seleccion = 0.75  # Puedes ajustar este valor según tus necesidades
 
 # Cálculos iniciales
 rango = b - a
@@ -30,8 +31,18 @@ def bin_to_decimal(binary_str):
 def generate_random_binary_string(length):
     return ''.join(random.choice('01') for _ in range(length))
 
+# Función para ordenar la población según las evaluaciones
+def sort_population(poblacion, evaluaciones):
+    return [individuo for _, individuo in sorted(zip(evaluaciones, poblacion))]
+
+# Función para seleccionar un porcentaje de los mejores individuos como padres
+def select_parents_percentage(poblacion, evaluaciones, porcentaje):
+    poblacion_ordenada = sort_population(poblacion, evaluaciones)
+    num_padres = int(porcentaje * len(poblacion_ordenada))
+    return poblacion_ordenada[:num_padres]
+
 # Función de selección de padres (modificada para seleccionar siempre los dos mejores)
-def select_parents(poblacion, evaluaciones):
+def select_parents(poblacion, evaluaciones, porcentaje):
     # Obtener los índices de los dos mejores individuos
     mejores_indices = sorted(range(len(evaluaciones)), key=lambda i: evaluaciones[i])[:2]
     return [poblacion[i] for i in mejores_indices]
@@ -81,15 +92,18 @@ def replace_population(poblacion, descendencia_mutada):
 
 # Función para encontrar el índice del mejor individuo
 def best_individual_index(evaluaciones):
-    return evaluaciones.index(min(evaluaciones))
+    if evaluaciones:
+        return evaluaciones.index(min(evaluaciones))
+    else:
+        return None
 
 # Función para imprimir las parejas de padres
-def print_parent_pairs(seleccionados):
-    print("Parejas de padres seleccionadas:")
-    for i in range(0, len(seleccionados), 2):
-        padre1 = seleccionados[i]
-        padre2 = seleccionados[i + 1] if i + 1 < len(seleccionados) else None
-        print(f"Padre 1: {padre1}, Padre 2: {padre2}")
+  #def print_parent_pairs(seleccionados):
+    #print("Parejas de padres seleccionadas:")
+    #for i in range(0, len(seleccionados), 2):
+     #   padre1 = seleccionados[i]
+      #  padre2 = seleccionados[i + 1] if i + 1 < len(seleccionados) else None
+       # print(f"Padre 1: {padre1}, Padre 2: {padre2}")
 
 # Inicialización de la población
 poblacion = [generate_random_binary_string(num_bits) for _ in range(poblacion_inicial)]
@@ -108,20 +122,19 @@ for generacion in range(num_generaciones):
         posicion_individuo = bin_to_decimal(individuo)
         print("{:<10} {:<25} {:<15} {:<15} {:<15}".format(i + 1, individuo, round(x, 6), round(f(x), 6), posicion_individuo))
 
-    # Selección de individuos para reproducción (modificada para seleccionar siempre los dos mejores)
-    seleccionados = select_parents(poblacion, evaluaciones)
+    # Selección de individuos para reproducción (modificada para seleccionar un porcentaje de los mejores)
+    seleccionados = select_parents_percentage(poblacion, evaluaciones, porcentaje_seleccion)
 
     # Imprimir las parejas de padres
-    print("\nParejas de padres:")
-    print(f"Pareja 1: Padre1 = {seleccionados[0]}, Padre2 = {seleccionados[1]} (Los dos mejores)")
+    print("\nMejores individuos:", seleccionados)
+    
 
-    # Generar nuevas parejas de padres combinando los dos mejores con todos los demás (excepto consigo mismos)
-    nuevas_parejas = [(seleccionados[0], individuo) for individuo in poblacion if individuo != seleccionados[0] and individuo != seleccionados[1]]
-    nuevas_parejas += [(seleccionados[1], individuo) for individuo in poblacion if individuo != seleccionados[0] and individuo != seleccionados[1]]
+    # Generar nuevas parejas de padres combinando los seleccionados con todos los demás (excepto consigo mismos)
+    nuevas_parejas = [(padre, individuo) for padre in seleccionados for individuo in poblacion if individuo != padre]
 
     # Imprimir las nuevas parejas de padres
     for i, pareja in enumerate(nuevas_parejas):
-        print(f"Pareja {i + 2}: Padre1 = {pareja[0]}, Padre2 = {pareja[1]}")
+        print(f"Pareja {i + 1}: Padre = {pareja[0]}, Individuo = {pareja[1]}")
 
     # Aplicar cruza a las nuevas parejas de padres
     descendencia = []
@@ -135,10 +148,12 @@ for generacion in range(num_generaciones):
     poblacion = replace_population(poblacion, descendencia_mutada)
 
 # Obtener el mejor individuo después de todas las generaciones
-mejor_individuo = poblacion[best_individual_index(evaluaciones)]
-
-# Mostrar resultados finales
-print("\nMejor individuo después de todas las generaciones:")
-print("{:<10} {:<25} {:<15} {:<15}".format("ID", "Individuo", "Posición (x)", "f(x)"))
-x_mejor = a + bin_to_decimal(mejor_individuo) * delta_x
-print("{:<10} {:<25} {:<15} {:<15}".format(1, mejor_individuo, round(x_mejor, 6), round(f(x_mejor), 6)))
+mejor_individuo_index = best_individual_index(evaluaciones)
+if mejor_individuo_index is not None:
+    mejor_individuo = poblacion[mejor_individuo_index]
+    print("\nMejor individuo después de todas las generaciones:")
+    print("{:<10} {:<25} {:<15} {:<15}".format("ID", "Individuo", "Posición (x)", "f(x)"))
+    x_mejor = a + bin_to_decimal(mejor_individuo) * delta_x
+    print("{:<10} {:<25} {:<15} {:<15}".format(mejor_individuo_index + 1, mejor_individuo, round(x_mejor, 6), round(f(x_mejor), 6)))
+else:
+    print("\nLa población está vacía después de todas las generaciones.")
