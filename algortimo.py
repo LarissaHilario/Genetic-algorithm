@@ -65,38 +65,48 @@ def select_parents(poblacion, evaluaciones, porcentaje):
 
 def crossover_multiple_points(nuevas_parejas, prob_mut_gen, num_bits):
     descendencia = []
-    for i in range(0, len(nuevas_parejas), 2):
-        if i + 1 < len(nuevas_parejas):  
-            padre1, padre2 = nuevas_parejas[i][0], nuevas_parejas[i + 1][0]
+    for i, pareja in enumerate(nuevas_parejas):
+        padre, individuo = pareja
 
-            # Obtener la cantidad aleatoria de puntos de cruza
-            num_puntos_cruza = random.randint(1, min(len(padre1), len(padre2)))
+        # Obtener la cantidad aleatoria de cortes
+        num_cortes = random.randint(1, min(len(padre), len(individuo)))
 
-            # Seleccionar aleatoriamente las posiciones de los puntos de cruza
-            puntos_cruza = sorted(random.sample(
-                range(1, min(len(padre1), len(padre2)) + 1), num_puntos_cruza))
+        # Seleccionar aleatoriamente las posiciones de los cortes
+        posiciones_cortes = sorted(random.sample(
+            range(1, min(len(padre), len(individuo)) + 1), num_cortes))
 
-            # Inicializar las subcadenas de los padres
-            subcadena_padre1 = ''
-            subcadena_padre2 = ''
+        # Inicializar las subcadenas de los padres
+        subcadena_padre = ''
+        subcadena_individuo = ''
 
-            # Realizar la cruza utilizando los puntos de cruza seleccionados
-            for j in range(len(puntos_cruza) + 1):
-                punto_cruza_inicial = 0 if j == 0 else puntos_cruza[j - 1]
-                punto_cruza_final = puntos_cruza[j] if j < len(
-                    puntos_cruza) else len(padre1)
+        # Variable para alternar entre padres
+        alternar = True
 
-                # Alternar entre los padres para cada subcadena
-                subcadena_padre1 += str(padre1[punto_cruza_inicial:punto_cruza_final])
-                subcadena_padre2 += str(padre2[punto_cruza_inicial:punto_cruza_final])
+        # Realizar la cruza utilizando los cortes y posiciones seleccionados
+        for j in range(len(posiciones_cortes) + 1):
+            posicion_corte_inicial = 0 if j == 0 else posiciones_cortes[j - 1]
+            posicion_corte_final = posiciones_cortes[j] if j < len(
+                posiciones_cortes) else len(padre)
 
-            # Combinar las subcadenas obtenidas de los padres
-            descendencia.extend([subcadena_padre1, subcadena_padre2])
+            # Alternar entre los padres para cada subcadena
+            if alternar:
+                subcadena_padre += str(padre[posicion_corte_inicial:posicion_corte_final])
+                subcadena_individuo += str(individuo[posicion_corte_inicial:posicion_corte_final])
+            else:
+                subcadena_padre += str(individuo[posicion_corte_inicial:posicion_corte_final])
+                subcadena_individuo += str(padre[posicion_corte_inicial:posicion_corte_final])
 
-            # Imprimir las posiciones y puntos de cruza
-            print(f"Pareja {i//2 + 1}: Cruza en posición {puntos_cruza} de Padre1 ({padre1}) y Padre2 ({padre2}) con {num_puntos_cruza} puntos de cruza")
+            alternar = not alternar
+
+        # Combinar las subcadenas obtenidas de los padres
+        descendencia.extend([subcadena_padre, subcadena_individuo])
+
+        # Imprimir las posiciones y cortes realizados
+        print(f"Pareja {i + 1}: Cortes en posición {posiciones_cortes} de Padre ({padre}) e Individuo ({individuo}) con {num_cortes} cortes")
 
     return descendencia
+
+
 
 
 def mutate(descendencia, prob_mut_gen, prob_mut_individuo):
