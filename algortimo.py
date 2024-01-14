@@ -11,7 +11,7 @@ probabilidad_cruza = 0.75
 probabilidad_mutacion_gen = 0.35
 probabilidad_mutacion_individuo = 0.25
 punto_cruza = 3
-num_generaciones = 5  # Ajusta según tus necesidades
+num_generaciones = 3  # Ajusta según tus necesidades
 
 # Cálculos iniciales
 rango = b - a
@@ -30,14 +30,13 @@ def bin_to_decimal(binary_str):
 def generate_random_binary_string(length):
     return ''.join(random.choice('01') for _ in range(length))
 
-# Función de selección de padres (ruleta)
+# Función de selección de padres (modificada para seleccionar siempre los dos mejores)
 def select_parents(poblacion, evaluaciones):
-    total_evaluaciones = sum(evaluaciones)
-    prob_seleccion = [evaluacion / total_evaluaciones for evaluacion in evaluaciones]
-    seleccionados_indices = random.choices(range(len(poblacion)), weights=prob_seleccion, k=len(poblacion))
-    return [poblacion[i] for i in seleccionados_indices]
+    # Obtener los índices de los dos mejores individuos
+    mejores_indices = sorted(range(len(evaluaciones)), key=lambda i: evaluaciones[i])[:2]
+    return [poblacion[i] for i in mejores_indices]
 
-# Función de cruza (punto de cruza)
+# Función de cruza (punto de cruza, modificada para evitar combinar los dos mejores)
 def crossover(padres, prob_cruza, punto_cruza):
     descendencia = []
     for i in range(0, len(padres), 2):
@@ -55,15 +54,25 @@ def crossover(padres, prob_cruza, punto_cruza):
 def mutate(descendencia, prob_mut_gen, prob_mut_individuo):
     descendencia_mutada = []
     for individuo in descendencia:
+        individuo_original = individuo  # Guardar una copia del individuo original
         individuo_mutado = ''
+
         for bit in individuo:
             if random.random() < prob_mut_gen:
                 bit = '1' if bit == '0' else '0'
+
             individuo_mutado += bit
+
         if random.random() < prob_mut_individuo:
             punto_mutacion = random.randint(0, len(individuo_mutado) - 1)
             individuo_mutado = individuo_mutado[:punto_mutacion] + random.choice('01') + individuo_mutado[punto_mutacion + 1:]
+
         descendencia_mutada.append(individuo_mutado)
+
+        # Verificar si el individuo ha mutado
+        if individuo_original != individuo_mutado:
+            print(f"Individuo original: {individuo_original}, Individuo mutado: {individuo_mutado}, ¡El individuo ha mutado!")
+
     return descendencia_mutada
 
 # Función de reemplazo de población (reemplazo generacional)
@@ -74,6 +83,14 @@ def replace_population(poblacion, descendencia_mutada):
 def best_individual_index(evaluaciones):
     return evaluaciones.index(min(evaluaciones))
 
+# Función para imprimir las parejas de padres
+def print_parent_pairs(seleccionados):
+    print("Parejas de padres seleccionadas:")
+    for i in range(0, len(seleccionados), 2):
+        padre1 = seleccionados[i]
+        padre2 = seleccionados[i + 1] if i + 1 < len(seleccionados) else None
+        print(f"Padre 1: {padre1}, Padre 2: {padre2}")
+
 # Inicialización de la población
 poblacion = [generate_random_binary_string(num_bits) for _ in range(poblacion_inicial)]
 
@@ -83,7 +100,7 @@ for generacion in range(num_generaciones):
     evaluaciones = [f(a + bin_to_decimal(individuo) * delta_x) for individuo in poblacion]
 
     # Impresión de la tabla
-    print(f"Generación {generacion + 1}")
+    print(f"\nGeneración {generacion + 1}")
     print("{:<10} {:<25} {:<15} {:<15} {:<15}".format("ID", "Individuo", "Posición (x)", "f(x)", "Posición Individuo"))
 
     for i, individuo in enumerate(poblacion):
@@ -91,11 +108,25 @@ for generacion in range(num_generaciones):
         posicion_individuo = bin_to_decimal(individuo)
         print("{:<10} {:<25} {:<15} {:<15} {:<15}".format(i + 1, individuo, round(x, 6), round(f(x), 6), posicion_individuo))
 
-    # Selección de individuos para reproducción (ruleta)
+    # Selección de individuos para reproducción (modificada para seleccionar siempre los dos mejores)
     seleccionados = select_parents(poblacion, evaluaciones)
 
-    # Aplicar cruza a los seleccionados
-    descendencia = crossover(seleccionados, probabilidad_cruza, punto_cruza)
+    # Imprimir las parejas de padres
+    print("\nParejas de padres:")
+    print(f"Pareja 1: Padre1 = {seleccionados[0]}, Padre2 = {seleccionados[1]} (Los dos mejores)")
+
+    # Generar nuevas parejas de padres combinando los dos mejores con todos los demás (excepto consigo mismos)
+    nuevas_parejas = [(seleccionados[0], individuo) for individuo in poblacion if individuo != seleccionados[0] and individuo != seleccionados[1]]
+    nuevas_parejas += [(seleccionados[1], individuo) for individuo in poblacion if individuo != seleccionados[0] and individuo != seleccionados[1]]
+
+    # Imprimir las nuevas parejas de padres
+    for i, pareja in enumerate(nuevas_parejas):
+        print(f"Pareja {i + 2}: Padre1 = {pareja[0]}, Padre2 = {pareja[1]}")
+
+    # Aplicar cruza a las nuevas parejas de padres
+    descendencia = []
+    for pareja in nuevas_parejas:
+        descendencia.extend(crossover(pareja, probabilidad_cruza, punto_cruza))
 
     # Aplicar mutación a la descendencia
     descendencia_mutada = mutate(descendencia, probabilidad_mutacion_gen, probabilidad_mutacion_individuo)
