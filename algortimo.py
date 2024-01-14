@@ -9,9 +9,9 @@ numero_de_puntos = 31
 poblacion_maxima = 8
 probabilidad_mutacion_gen = 0.35
 probabilidad_mutacion_individuo = 0.25
-num_generaciones = 4  # Ajusta según tus necesidades
+num_generaciones = 2  # Ajusta según tus necesidades
 porcentaje_seleccion = 0.25  # Puedes ajustar este valor según tus necesidades
-
+todas_generaciones = []
 # Cálculos iniciales
 rango = b - a
 num_bits = math.ceil(math.log2(numero_de_puntos))
@@ -44,7 +44,6 @@ def generate_random_binary_string(length):
 def sort_population(poblacion, evaluaciones):
     return [individuo for _, individuo in sorted(zip(evaluaciones, poblacion))]
 
-
 # Función para seleccionar un porcentaje de los mejores individuos como padres
 
 
@@ -53,13 +52,13 @@ def select_parents_percentage(poblacion, evaluaciones, porcentaje):
     num_padres = int(porcentaje * len(poblacion_ordenada))
     return poblacion_ordenada[:num_padres]
 
-
 # Función de selección de padres (modificada para seleccionar siempre los dos mejores)
 
 
 def select_parents(poblacion, evaluaciones, porcentaje):
     # Obtener los índices de los dos mejores individuos
-    mejores_indices = sorted(range(len(evaluaciones)), key=lambda i: evaluaciones[i])[:2]
+    mejores_indices = sorted(range(len(evaluaciones)),
+                             key=lambda i: evaluaciones[i])[:2]
 
     # Asegurarse de que los índices no se repitan
     nuevos_indices = random.sample(range(len(poblacion)), len(poblacion))
@@ -96,11 +95,15 @@ def crossover_multiple_points(nuevas_parejas, prob_mut_gen, num_bits):
 
             # Alternar entre los padres para cada subcadena
             if alternar:
-                subcadena_padre += str(padre[posicion_corte_inicial:posicion_corte_final])
-                subcadena_individuo += str(individuo[posicion_corte_inicial:posicion_corte_final])
+                subcadena_padre += str(
+                    padre[posicion_corte_inicial:posicion_corte_final])
+                subcadena_individuo += str(
+                    individuo[posicion_corte_inicial:posicion_corte_final])
             else:
-                subcadena_padre += str(individuo[posicion_corte_inicial:posicion_corte_final])
-                subcadena_individuo += str(padre[posicion_corte_inicial:posicion_corte_final])
+                subcadena_padre += str(
+                    individuo[posicion_corte_inicial:posicion_corte_final])
+                subcadena_individuo += str(
+                    padre[posicion_corte_inicial:posicion_corte_final])
 
             alternar = not alternar
 
@@ -113,37 +116,52 @@ def crossover_multiple_points(nuevas_parejas, prob_mut_gen, num_bits):
     return descendencia
 
 
+# Función de mutación con intercambio de posición de bits
+def mutate_sequence_swap_positions(individuo, prob_mut_individuo, prob_mut_gen):
+    individuo_original = individuo  # Guardar una copia del individuo original
+    individuo_mutado = ''
+    bits_intercambiados = None
 
-
-def mutate(descendencia, prob_mut_gen, prob_mut_individuo):
-    descendencia_mutada = []
-    for individuo in descendencia:
-        individuo_original = individuo  # Guardar una copia del individuo original
-        individuo_mutado = ''
-
-        for bit in individuo:
+    # Evaluación si el individuo debe mutar en su totalidad
+    if random.random() < prob_mut_individuo:
+        # Si el individuo debe mutar en su totalidad, realiza la mutación de genes
+        # Evaluación para cada gen si debe mutar
+        for i, bit in enumerate(individuo):
             if random.random() < prob_mut_gen:
                 bit = '1' if bit == '0' else '0'
 
+                # Si ocurre una mutación, registra las posiciones de bits intercambiados
+                if bits_intercambiados is None:
+                    bits_intercambiados = i
+
             individuo_mutado += bit
 
-        if random.random() < prob_mut_individuo and individuo_mutado:
-            punto_mutacion = random.randint(0, len(individuo_mutado) - 1)
-            individuo_mutado = individuo_mutado[:punto_mutacion] + \
-                random.choice('01') + individuo_mutado[punto_mutacion + 1:]
+        if bits_intercambiados is not None:
+            # Si ocurrió una mutación, intercambia bits en posiciones aleatorias
+            posicion1 = random.randint(0, len(individuo_mutado) - 1)
+            individuo_mutado = list(individuo_mutado)
+            individuo_mutado[bits_intercambiados], individuo_mutado[
+                posicion1] = individuo_mutado[posicion1], individuo_mutado[bits_intercambiados]
+            individuo_mutado = ''.join(individuo_mutado)
 
-        descendencia_mutada.append(individuo_mutado)
-
-        # Verificar si el individuo ha mutado y no es una cadena vacía
-        if individuo_original != individuo_mutado and individuo_mutado:
+            # Imprimir información de la mutación
             print(
-                f"Individuo original: {individuo_original}, Individuo mutado: {individuo_mutado}, ¡El individuo ha mutado!")
+                f"Individuo original: {individuo_original}, Individuo mutado: {individuo_mutado}, Bits intercambiados: {bits_intercambiados} y {posicion1}")
+        else:
+            # Imprimir información de la mutación
+            print(
+                f"Individuo original: {individuo_original}, No ocurrió mutación de genes")
 
-    return descendencia_mutada
+    else:
+        # Si el individuo no debe mutar en su totalidad, mantenerlo sin cambios
+        individuo_mutado = individuo_original
+        print(
+            f"Individuo original: {individuo_original}, No ocurrió mutación de individuo")
+
+    return individuo_mutado
+
 
 # Función para agregar nuevos individuos a la población existente
-
-
 def add_new_individuals(poblacion, nuevos_individuos):
     return poblacion + nuevos_individuos
 
@@ -161,12 +179,12 @@ def best_individual_index(evaluaciones):
 poblacion = [generate_random_binary_string(
     num_bits) for _ in range(poblacion_inicial)]
 
-#algoritmo genetico
+# Algoritmo genético
 for generacion in range(num_generaciones):
     # Evaluación de la función objetivo para cada individuo
     evaluaciones = [f(a + bin_to_decimal(individuo) * delta_x)
                     for individuo in poblacion]
-
+    todas_generaciones.append(poblacion.copy())
     # Impresión de la tabla
     print(f"\nGeneración {generacion + 1}")
     print("{:<10} {:<25} {:<15} {:<15} {:<15}".format(
@@ -179,8 +197,9 @@ for generacion in range(num_generaciones):
             i + 1, individuo, round(x, 6), round(f(x), 6), posicion_individuo))
 
     # Selección de individuos para reproducción (modificada para seleccionar un porcentaje de los mejores)
-   # Modificación para eliminar duplicados de la lista de mejores individuos
-    seleccionados = list(set(select_parents_percentage(poblacion, evaluaciones, porcentaje_seleccion)))
+    # Modificación para eliminar duplicados de la lista de mejores individuos
+    seleccionados = list(set(select_parents_percentage(
+        poblacion, evaluaciones, porcentaje_seleccion)))
 
     # Imprimir las parejas de padres
     print("\nMejores individuos:", seleccionados)
@@ -207,25 +226,37 @@ for generacion in range(num_generaciones):
     descendencia = crossover_multiple_points(
         nuevas_parejas, probabilidad_mutacion_gen, num_bits)
 
-
     # Imprimir la descendencia y los puntos de cruza seleccionados
     print("\nDescendencia después de cruza:")
     for i, ind in enumerate(descendencia):
         print(f"Descendiente {i + 1}: {ind}")
 
-    # Agregar nuevos individuos a la población existente antes de la mutación
-    poblacion = add_new_individuals(poblacion, descendencia)
+    # Aplicar mutación a la descendencia
+    descendencia_mutada = [mutate_sequence_swap_positions(
+        individuo, probabilidad_mutacion_individuo, probabilidad_mutacion_gen) for individuo in descendencia]
 
+ # Agregar nuevos individuos a la población existente
+    poblacion = add_new_individuals(poblacion, descendencia_mutada)
+    # Impresión de la descendencia después de la mutación
+    print("\nDescendencia después de mutación:")
+    for i, individuo_mutado in enumerate(descendencia_mutada):
+        x = a + bin_to_decimal(individuo_mutado) * delta_x
+        posicion_individuo = bin_to_decimal(individuo_mutado)
 
-# Obtener el mejor individuo después de todas las generaciones
-mejor_individuo_index = best_individual_index(evaluaciones)
-if mejor_individuo_index is not None:
-    mejor_individuo = poblacion[mejor_individuo_index]
-    print("\nMejor individuo después de todas las generaciones:")
-    print("{:<10} {:<25} {:<15} {:<15}".format(
-        "ID", "Individuo", "Posición (x)", "f(x)"))
-    x_mejor = a + bin_to_decimal(mejor_individuo) * delta_x
-    print("{:<10} {:<25} {:<15} {:<15}".format(mejor_individuo_index +
-          1, mejor_individuo, round(x_mejor, 6), round(f(x_mejor), 6)))
-else:
-    print("\nLa población está vacía después de todas las generaciones.")
+        if descendencia[i] != individuo_mutado:
+            print(f"{i + 1}: Mutado - {individuo_mutado}, Posición (x): {round(x, 6)}, f(x): {round(f(x), 6)}, Posición Individuo: {posicion_individuo}")
+        else:
+            print(f"{i + 1}: No Mutado - {individuo_mutado}, Posición (x): {round(x, 6)}, f(x): {round(f(x), 6)}, Posición Individuo: {posicion_individuo}")
+
+    # Obtener el mejor individuo después de todas las generaciones
+    mejor_individuo_index = best_individual_index(evaluaciones)
+    if mejor_individuo_index is not None:
+        mejor_individuo = poblacion[mejor_individuo_index]
+        print("\nMejor individuo después de todas las generaciones:")
+        print("{:<10} {:<25} {:<15} {:<15}".format(
+            "ID", "Individuo", "Posición (x)", "f(x)"))
+        x_mejor = a + bin_to_decimal(mejor_individuo) * delta_x
+        print("{:<10} {:<25} {:<15} {:<15}".format(mejor_individuo_index +
+              1, mejor_individuo, round(x_mejor, 6), round(f(x_mejor), 6)))
+    else:
+        print("\nLa población está vacía después de todas las generaciones.")
