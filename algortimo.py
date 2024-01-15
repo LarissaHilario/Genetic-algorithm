@@ -120,7 +120,7 @@ def crossover_multiple_points(nuevas_parejas, prob_mut_gen, num_bits):
 def mutate_sequence_swap_positions(individuo, prob_mut_individuo, prob_mut_gen):
     individuo_original = individuo  # Guardar una copia del individuo original
     individuo_mutado = ''
-    bits_intercambiados = None
+    posiciones_mutadas = []
 
     # Evaluación si el individuo debe mutar en su totalidad
     if random.random() < prob_mut_individuo:
@@ -131,32 +131,31 @@ def mutate_sequence_swap_positions(individuo, prob_mut_individuo, prob_mut_gen):
                 bit = '1' if bit == '0' else '0'
 
                 # Si ocurre una mutación, registra las posiciones de bits intercambiados
-                if bits_intercambiados is None:
-                    bits_intercambiados = i
+                posiciones_mutadas.append(i)
 
             individuo_mutado += bit
 
-        if bits_intercambiados is not None:
+        if posiciones_mutadas:
             # Si ocurrió una mutación, intercambia bits en posiciones aleatorias
-            posicion1 = random.randint(0, len(individuo_mutado) - 1)
-            individuo_mutado = list(individuo_mutado)
-            individuo_mutado[bits_intercambiados], individuo_mutado[
-                posicion1] = individuo_mutado[posicion1], individuo_mutado[bits_intercambiados]
-            individuo_mutado = ''.join(individuo_mutado)
+            for bits_intercambiados in posiciones_mutadas:
+                posicion1 = random.randint(0, len(individuo_mutado) - 1)
+                
+                # Imprimir la posición aleatoria seleccionada
+                print(f"Posición aleatoria para intercambio: {posicion1}")
 
-            # Imprimir información de la mutación
-            print(
-                f"Individuo original: {individuo_original}, Individuo mutado: {individuo_mutado}, Bits intercambiados: {bits_intercambiados} y {posicion1}")
+                individuo_mutado = list(individuo_mutado)
+                individuo_mutado[bits_intercambiados], individuo_mutado[posicion1] = individuo_mutado[posicion1], individuo_mutado[bits_intercambiados]
+                individuo_mutado = ''.join(individuo_mutado)
+
+            # Imprimir la información de todas las mutaciones de genes
+            print(f"Individuo original: {individuo_original}, Individuo mutado: {individuo_mutado}, Bits intercambiados: {', '.join(map(str, posiciones_mutadas))}")
         else:
             # Imprimir información de la mutación
-            print(
-                f"Individuo original: {individuo_original}, No ocurrió mutación de genes")
-
+            print(f"Individuo original: {individuo_original}, No ocurrió mutación de genes")
     else:
         # Si el individuo no debe mutar en su totalidad, mantenerlo sin cambios
         individuo_mutado = individuo_original
-        print(
-            f"Individuo original: {individuo_original}, No ocurrió mutación de individuo")
+        print(f"Individuo original: {individuo_original}, No ocurrió mutación de individuo")
 
     return individuo_mutado
 
