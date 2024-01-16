@@ -10,7 +10,7 @@ numero_de_puntos = 10
 poblacion_maxima = 20
 probabilidad_mutacion_gen = 0.2
 probabilidad_mutacion_individuo = 0.4
-num_generaciones = 100  # Ajusta según tus necesidades
+num_generaciones = 2  # Ajusta según tus necesidades
 porcentaje_seleccion = 0.25  # Puedes ajustar este valor según tus necesidades
 todas_generaciones = []
 datos_estadisticos = []
@@ -208,21 +208,27 @@ for generacion in range(num_generaciones):
         posicion_individuo = bin_to_decimal(individuo)
         print("{:<10} {:<25} {:<15} {:<15} {:<15}".format(
             i + 1, individuo, round(x, 6), round(f(x), 6), posicion_individuo))
-        
+
         datos_generacion = {
-                'ID': i + 1 ,
-                'Individuo': individuo,
-                'I': posicion_individuo,
-                'x': round(x, 6),
-                'f(x)': round(f(x), 6)
-            }
-    
+            'ID': i + 1,
+            'Individuo': individuo,
+            'I': posicion_individuo,
+            'x': round(x, 6),
+            'f(x)': round(f(x), 6)
+        }
+
         datos_estadisticos.append(datos_generacion)
 
     # DataFrame 
     df = pd.DataFrame(datos_estadisticos)
-    df.to_csv('datos_estadisticos_geneticos.csv', index=False)
-
+    
+    if generacion == 0:
+        # Guardar la generación 1 en el primer ciclo
+        df.to_csv('datos_estadisticos_geneticos.csv', index=False)
+    else:
+        # Agregar las nuevas generaciones mutadas
+        df.to_csv('datos_estadisticos_geneticos.csv', mode='a', header=False, index=False)
+   
     # Poda de la población después de la mutación
     poblacion = prune_population(poblacion, evaluaciones)
 
