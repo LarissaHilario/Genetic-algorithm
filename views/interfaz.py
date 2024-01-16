@@ -1,5 +1,5 @@
 from customtkinter import CTk, CTkLabel, CTkButton, CTkEntry
-
+from algortimo import run_genetic_algorithm
 
 class MiVentana(CTk):
 
@@ -12,111 +12,30 @@ class MiVentana(CTk):
         self.geometry("460x500")  # Tamaño inicial de la ventana
         self.resizable(False, False)  # Evitar que se redimensione
 
-        #POBLACIÓN
-
-        self.label = CTkLabel(self, text="Población")
-        self.label.place(x=200, y=30)
-        self.label.configure(font=("TkDefaultFont", 16, "bold"))
-
-        self.label = CTkLabel(self, text="Pob. Minima:")
-        self.label.place(x=35, y=65)
-        self.label.configure(font=("TkDefaultFont", 12, "bold"))
-
-        self.entrada = CTkEntry(self)
-        self.entrada.place(x=120, y=65)
-        self.entrada.configure(width=80, height=25)
-
-        self.label = CTkLabel(self, text="Pob. Maxima:")
-        self.label.place(x=235, y=65)
-        self.label.configure(font=("TkDefaultFont", 12, "bold"))
-
-        self.entrada = CTkEntry(self)
-        self.entrada.place(x=325, y=65)
-        self.entrada.configure(width=80, height=25)
-
-        #MUTACIÓN
-
-        self.label = CTkLabel(self, text="Mutación")
-        self.label.place(x=200, y=110)
-        self.label.configure(font=("TkDefaultFont", 16, "bold"))
-
-        self.label = CTkLabel(self, text="%Mut. Ind:")
-        self.label.place(x=50, y=140)
-        self.label.configure(font=("TkDefaultFont", 12, "bold"))
-
-        self.entrada = CTkEntry(self)
-        self.entrada.place(x=120, y=140)
-        self.entrada.configure(width=80, height=25)
-
-        self.label = CTkLabel(self, text="%Mut. gen:")
-        self.label.place(x=250, y=140)
-        self.label.configure(font=("TkDefaultFont", 12, "bold"))
-
-        self.entrada = CTkEntry(self)
-        self.entrada.place(x=325, y=140)
-        self.entrada.configure(width=80, height=25)
-
-        #RESOLUCIÓN
-        
-        self.label = CTkLabel(self, text="Resolución")
-        self.label.place(x=190, y=180)
-        self.label.configure(font=("TkDefaultFont", 16, "bold"))
-
-        self.label = CTkLabel(self, text="Resolución:")
-        self.label.place(x=60, y=210)
-        self.label.configure(font=("TkDefaultFont", 12, "bold"))
- 
-        self.entrada = CTkEntry(self)
-        self.entrada.place(x=140, y=210)
-        self.entrada.configure(width=220, height=25)
-
-        self.boton = CTkButton(self, text="Maximo")
-        self.boton.place(x=150, y=250)
-        self.boton.configure(width=80, height=25)
-
-        self.boton = CTkButton(self, text="Minimo")
-        self.boton.place(x=250, y=250)
-        self.boton.configure(width=80, height=25)
-
-        #RANGO
-
-        self.label = CTkLabel(self, text="Rango")
-        self.label.place(x=200, y=355)
-        self.label.configure(font=("TkDefaultFont", 16, "bold"))
-
-        self.label = CTkLabel(self, text="a:")
-        self.label.place(x=120, y=390)
-        self.label.configure(font=("TkDefaultFont", 12, "bold"))
-
-        self.entrada = CTkEntry(self)
-        self.entrada.place(x=140, y=390)
-        self.entrada.configure(width=80, height=25)
-
-        self.label = CTkLabel(self, text="b:")
-        self.label.place(x=240, y=390)
-        self.label.configure(font=("TkDefaultFont", 12, "bold"))
-
-        self.entrada = CTkEntry(self)
-        self.entrada.place(x=260, y=390)
-        self.entrada.configure(width=80, height=25)
-
-        #EVALUACIÓN
-
-        self.label = CTkLabel(self, text="Criterios")
-        self.label.place(x=200, y=290)
-        self.label.configure(font=("TkDefaultFont", 16, "bold"))
-
-        self.label = CTkLabel(self, text="Iteraciones:")
-        self.label.place(x=145, y=325)
-        self.label.configure(font=("TkDefaultFont", 12, "bold"))
-
-        self.entrada = CTkEntry(self)
-        self.entrada.place(x=225, y=325)
-        self.entrada.configure(width=80, height=25)
-
-        self.boton = CTkButton(self, text="Realizar algoritmo", fg_color="#42B650")
+        self.boton = CTkButton(self, text="Realizar algoritmo", command=self.ejecutar_algoritmo, fg_color="#42B650")
         self.boton.place(x=180, y=440)
         self.boton.configure(width=80, height=25)
 
-mi_ventana = MiVentana()  # Crear la instancia de la ventana
-mi_ventana.mainloop()  # Iniciar el bucle principal
+    def ejecutar_algoritmo(self):
+        # Obtener valores del usuario
+        poblacion_minima = int(self.entrada_pob_minima.get())
+        poblacion_maxima = int(self.entrada_pob_maxima.get())
+        prob_mut_individuo = float(self.entrada_mut_ind.get())
+        prob_mut_gen = float(self.entrada_mut_gen.get())
+        resolucion = int(self.entrada_resolucion.get())
+        tipo_resolucion = "Maximo" if self.boton_maximo.is_selected() else "Minimo"
+        a = float(self.entrada_a.get())
+        b = float(self.entrada_b.get())
+
+        # Run the genetic algorithm
+        result = run_genetic_algorithm(poblacion_minima, poblacion_maxima, prob_mut_individuo, prob_mut_gen, resolucion, tipo_resolucion, a, b)
+
+        # Handle the result as needed (e.g., display it in the GUI)
+        print("\nMejor individuo después de todas las generaciones:")
+        print("{:<10} {:<25} {:<15} {:<15}".format("ID", "Individuo", "Posición (x)", "f(x)"))
+        print("{:<10} {:<25} {:<15} {:<15}".format(*result))
+
+# Crear la instancia de la ventana
+mi_ventana = MiVentana()
+# Iniciar el bucle principal
+mi_ventana.mainloop()
