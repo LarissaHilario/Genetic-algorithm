@@ -1,17 +1,19 @@
 import math
 import random
+import pandas as pd  
 
 # Parámetros dados por el usuario
-poblacion_inicial = 4
-a = 3
-b = 5
-numero_de_puntos = 31
-poblacion_maxima = 8
-probabilidad_mutacion_gen = 0.35
-probabilidad_mutacion_individuo = 0.25
-num_generaciones = 2  # Ajusta según tus necesidades
+poblacion_inicial = 5
+a = -8
+b = -6
+numero_de_puntos = 10
+poblacion_maxima = 20
+probabilidad_mutacion_gen = 0.2
+probabilidad_mutacion_individuo = 0.4
+num_generaciones = 100  # Ajusta según tus necesidades
 porcentaje_seleccion = 0.25  # Puedes ajustar este valor según tus necesidades
 todas_generaciones = []
+datos_estadisticos = []
 # Cálculos iniciales
 rango = b - a
 num_bits = math.ceil(math.log2(numero_de_puntos))
@@ -19,7 +21,7 @@ delta_x = rango / (2 ** num_bits)
 
 # Función objetivo f(x)
 def f(x):
-    return x**3 - 2*x**2*math.cos(math.radians(x)) + 3
+    return x**3 - x**3*math.cos(math.radians(5*x)) 
 
 # Función para decodificar la cadena de bits a un número decimal
 def bin_to_decimal(binary_str):
@@ -119,6 +121,19 @@ def mutate_sequence_swap_positions(individuo, prob_mut_individuo, prob_mut_gen):
 
     return individuo_mutado
 
+def prune_population(poblacion, evaluaciones):
+    # Obtener índice del mejor individuo antes de la poda
+    mejor_individuo_index = best_individual_index(evaluaciones)
+
+    # Eliminar individuos duplicados
+    poblacion = list(set(poblacion))
+
+    # Mantener al mejor individuo después de la poda
+    if mejor_individuo_index is not None:
+        poblacion.append(poblacion[mejor_individuo_index])
+
+    return poblacion
+
 def add_new_individuals(poblacion, nuevos_individuos):
     return poblacion + nuevos_individuos
 
@@ -131,6 +146,7 @@ def best_individual_index(evaluaciones):
 # Inicialización de la población
 poblacion = [generate_random_binary_string(
     num_bits) for _ in range(poblacion_inicial)]
+
 
 # Algoritmo genético
 for generacion in range(num_generaciones):
@@ -169,7 +185,7 @@ for generacion in range(num_generaciones):
         print(f"Descendiente {i + 1}: {ind}")
 
     descendencia_mutada = [mutate_sequence_swap_positions(individuo, probabilidad_mutacion_individuo, probabilidad_mutacion_gen) for individuo in descendencia]
- # Agregar nuevos individuos a la población existente
+    # Agregar nuevos individuos a la población existente
     poblacion = add_new_individuals(poblacion, descendencia_mutada)
 
     print("\nDescendencia después de mutación:")
@@ -181,19 +197,47 @@ for generacion in range(num_generaciones):
             print(f"{i + 1}: Mutado - {individuo_mutado}, Posición (x): {round(x, 6)}, f(x): {round(f(x), 6)}, Posición Individuo: {posicion_individuo}")
         else:
             print(f"{i + 1}: No Mutado - {individuo_mutado}, Posición (x): {round(x, 6)}, f(x): {round(f(x), 6)}, Posición Individuo: {posicion_individuo}")
-
-
-
-#tabla de toda la población
-    print(f"\nGeneración {generacion + 1}")
+    
+    # Imprimir la tabla después de agregar nuevos descendientes
+    print("\nPoblación después de mutación:")
     print("{:<10} {:<25} {:<15} {:<15} {:<15}".format(
-            "ID", "Individuo", "Posicion (x)", "f(x)", "Posicion Individuo"))
+        "ID", "Individuo", "Posicion (x)", "f(x)", "Posicion Individuo"))
 
     for i, individuo in enumerate(poblacion):
-            x = a + bin_to_decimal(individuo) * delta_x
-            posicion_individuo = bin_to_decimal(individuo)
-            print("{:<10} {:<25} {:<15} {:<15} {:<15}".format(
-                i + 1, individuo, round(x, 6), round(f(x), 6), posicion_individuo))
+        x = a + bin_to_decimal(individuo) * delta_x
+        posicion_individuo = bin_to_decimal(individuo)
+        print("{:<10} {:<25} {:<15} {:<15} {:<15}".format(
+            i + 1, individuo, round(x, 6), round(f(x), 6), posicion_individuo))
+        
+        datos_generacion = {
+                'ID': i + 1 ,
+                'Individuo': individuo,
+                'I': posicion_individuo,
+                'x': round(x, 6),
+                'f(x)': round(f(x), 6)
+            }
+    
+        datos_estadisticos.append(datos_generacion)
+
+    # DataFrame 
+    df = pd.DataFrame(datos_estadisticos)
+    df.to_csv('datos_estadisticos_geneticos.csv', index=False)
+
+    # Poda de la población después de la mutación
+    poblacion = prune_population(poblacion, evaluaciones)
+
+    # Imprimir la tabla después de la poda
+    print("\nPoblación después de la poda:")
+    print("{:<10} {:<25} {:<15} {:<15} {:<15}".format(
+        "ID", "Individuo", "Posicion (x)", "f(x)", "Posicion Individuo"))
+
+    for i, individuo in enumerate(poblacion):
+        x = a + bin_to_decimal(individuo) * delta_x
+        posicion_individuo = bin_to_decimal(individuo)
+        print("{:<10} {:<25} {:<15} {:<15} {:<15}".format(
+            i + 1, individuo, round(x, 6), round(f(x), 6), posicion_individuo))
+
+
 
 # Obtener el mejor individuo después de todas las generaciones
 mejor_individuo_index = best_individual_index(evaluaciones)
@@ -206,27 +250,3 @@ if mejor_individuo_index is not None:
     print("{:<10} {:<25} {:<15} {:<15}".format(mejor_individuo_index , mejor_individuo, round(x_mejor, 6), round(f(x_mejor), 6)))
 else:
     print("\nLa población está vacía después de todas las generaciones.")
-
-
-
-# Poda después de todas las generaciones
-mejor_individuo_index = best_individual_index(evaluaciones)
-poblacion = [poblacion[mejor_individuo_index]]
-evaluaciones = [evaluaciones[mejor_individuo_index]]
-
-poblacion = list(set(poblacion))
-while len(poblacion) < poblacion_maxima:
-    nuevo_individuo = generate_random_binary_string(num_bits)
-    if nuevo_individuo not in poblacion:
-        poblacion.append(nuevo_individuo)
-        evaluaciones.append(f(a + bin_to_decimal(nuevo_individuo) * delta_x))
-
-print("\nPoblación después de la poda:")
-print("{:<10} {:<25} {:<15} {:<15} {:<15}".format(
-    "ID", "Individuo", "Posición (x)", "f(x)", "Posición Individuo"))
-
-for i, individuo in enumerate(poblacion):
-    x = a + bin_to_decimal(individuo) * delta_x
-    posicion_individuo = bin_to_decimal(individuo)
-    print("{:<10} {:<25} {:<15} {:<15} {:<15}".format(
-        i + 1, individuo, round(x, 6), round(f(x), 6), posicion_individuo))
