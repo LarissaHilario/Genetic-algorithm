@@ -1,25 +1,25 @@
 import math
 import random
-import pandas as pd  
+import pandas as pd
 
 # Parámetros dados por el usuario
 poblacion_inicial = 5
-a = -8
-b = -6
+a = 8
+b = 6
 delta_x = 2/31
-numero_saltos= 2/delta_x
+numero_saltos = 2/delta_x
 numero_de_puntos = numero_saltos+1
 poblacion_maxima = 10
 probabilidad_mutacion_gen = 0.2
 probabilidad_mutacion_individuo = 0.4
-num_generaciones = 3  # Ajusta según tus necesidades
-porcentaje_seleccion = 0.25  # Puedes ajustar este valor según tus necesidades
+num_generaciones = 4 
+porcentaje_seleccion = 0.25  
 todas_generaciones = []
 datos_estadisticos = []
-tipo_problema = "max"  
+tipo_problema = "max"
 
 mejor_individuo_global = None
-mejor_evaluacion_global = float('inf') 
+mejor_evaluacion_global = float('inf')
 
 # Cálculos iniciales
 rango = b - a
@@ -27,7 +27,7 @@ num_bits = math.ceil(math.log2(numero_de_puntos))
 
 # Función objetivo f(x)
 def f(x):
-    return x**3 - x**3*math.cos(math.radians(5*x)) 
+    return x**3 - x**3*math.cos(math.radians(5*x))
 
 # Función para decodificar la cadena de bits a un número decimal
 def bin_to_decimal(binary_str):
@@ -44,20 +44,31 @@ def generate_random_binary_string(length):
 def sort_population(poblacion, evaluaciones):
     return [individuo for _, individuo in sorted(zip(evaluaciones, poblacion))]
 
-# Función para seleccionar un porcentaje de los mejores individuos como padres
+
+'''# Función para seleccionar un porcentaje de los mejores individuos como padres
 def select_parents_percentage(poblacion, evaluaciones, porcentaje):
     poblacion_ordenada = sort_population(poblacion, evaluaciones)
     num_padres = int(porcentaje * len(poblacion_ordenada))
-    return poblacion_ordenada[:num_padres]
+    return poblacion_ordenada[:num_padres]'''
 
+
+def select_parents_percentage(poblacion, evaluaciones, porcentaje, tipo_problema):
+    poblacion_ordenada = sort_population(poblacion, evaluaciones)
+
+    if tipo_problema == "min":
+        num_padres = int(porcentaje * len(poblacion_ordenada))
+        return poblacion_ordenada[:num_padres]  # Selecciona los primeros num_padres individuos (los de evaluaciones más bajas)
+    else:
+        num_padres = int(porcentaje * len(poblacion_ordenada))
+        return poblacion_ordenada[-num_padres:]  # Selecciona los últimos num_padres individuos (los de evaluaciones más altas)
 
 
 
 def evaluar_individuo(individuo, a, delta_x, tipo_problema):
-    x = a + bin_to_decimal(individuo) * delta_x
-    resultado = f(x)
-    return resultado if tipo_problema == "min" else -resultado
-
+    if tipo_problema == "max":
+        return f(a + bin_to_decimal(individuo) * delta_x)
+    else:
+        return f(a + bin_to_decimal(individuo) * delta_x)
 
 
 def crossover_multiple_points(nuevas_parejas, prob_mut_gen, num_bits):
@@ -114,59 +125,51 @@ def mutate_sequence_swap_positions(individuo, prob_mut_individuo, prob_mut_gen):
                 print(f"Posición aleatoria para intercambio: {posicion1}")
 
                 individuo_mutado = list(individuo_mutado)
-                individuo_mutado[bits_intercambiados], individuo_mutado[posicion1] = individuo_mutado[posicion1], individuo_mutado[bits_intercambiados]
+                individuo_mutado[bits_intercambiados], individuo_mutado[
+                    posicion1] = individuo_mutado[posicion1], individuo_mutado[bits_intercambiados]
                 individuo_mutado = ''.join(individuo_mutado)
 
-            print(f"Individuo original: {individuo_original}, Individuo mutado: {individuo_mutado}, Bits intercambiados: {', '.join(map(str, posiciones_mutadas))}")
+            print(
+                f"Individuo original: {individuo_original}, Individuo mutado: {individuo_mutado}, Bits intercambiados: {', '.join(map(str, posiciones_mutadas))}")
         else:
-            print(f"Individuo original: {individuo_original}, No ocurrió mutación de genes")
+            print(
+                f"Individuo original: {individuo_original}, No ocurrió mutación de genes")
     else:
         individuo_mutado = individuo_original
-        print(f"Individuo original: {individuo_original}, No ocurrió mutación de individuo")
+        print(
+            f"Individuo original: {individuo_original}, No ocurrió mutación de individuo")
 
     return individuo_mutado
 
-def prune_population(poblacion, evaluaciones, poblacion_maxima):
-    # Obtener índice del mejor individuo antes de la poda
-    mejor_individuo_index = best_individual_index(evaluaciones, tipo_problema)
+def prune_population(poblacion, evaluaciones, poblacion_maxima, tipo_problema):
+    mejor_individuo_mutado_index = best_individual_index(evaluaciones, tipo_problema)
+    mejor_individuo_mutado = poblacion[mejor_individuo_mutado_index]
 
-    # Eliminar individuos duplicados
     poblacion_ordenada = list(set(poblacion))
+    poblacion_ordenada.remove(mejor_individuo_mutado)
 
-    # Mantener al mejor individuo después de la poda
-    if mejor_individuo_index is not None:
-        poblacion_ordenada.append(poblacion_ordenada.pop(mejor_individuo_index))
+    # Si la población es mayor al límite permitido, eliminar individuos al azar
+    if len(poblacion_ordenada) > poblacion_maxima - 1:
+        num_individuos_a_eliminar = len(poblacion_ordenada) - (poblacion_maxima - 1)
+        poblacion_ordenada = random.sample(poblacion_ordenada, poblacion_maxima - 1)
 
-    # Realizar la poda para mantener el máximo número de individuos permitidos
-    poblacion_final = poblacion_ordenada[:poblacion_maxima]
+    # Añadir de nuevo al mejor individuo después de la mutación
+    poblacion_ordenada.append(mejor_individuo_mutado)
 
-    return poblacion_final
-
-
-
-
-
-
+    return poblacion_ordenada
 
 def add_new_individuals(poblacion, nuevos_individuos):
     return poblacion + nuevos_individuos
 
 def best_individual_index(evaluaciones, tipo_problema):
-    if evaluaciones:
-        if tipo_problema == "min":
-            return evaluaciones.index(min(evaluaciones))
-        elif tipo_problema == "max":
-            return evaluaciones.index(max(evaluaciones))
-    return None
-
-
-
-
+    if tipo_problema == "min":
+     return evaluaciones.index(min(evaluaciones))
+    else:
+     return evaluaciones.index(max(evaluaciones)) 
 
 # Inicialización de la población
 poblacion = [generate_random_binary_string(
     num_bits) for _ in range(poblacion_inicial)]
-
 
 # Algoritmo genético
 for generacion in range(num_generaciones):
@@ -183,21 +186,15 @@ for generacion in range(num_generaciones):
         print("{:<10} {:<25} {:<15} {:<15} {:<15}".format(
             i + 1, individuo, round(x, 6), round(f(x), 6), posicion_individuo))
 
-    seleccionados = list(set(select_parents_percentage(poblacion, evaluaciones, porcentaje_seleccion)))
-    
+    seleccionados = list(set(select_parents_percentage(
+        poblacion, evaluaciones, porcentaje_seleccion, tipo_problema)))
+
     print("\nMejores individuos:", seleccionados)
 
-# Seguimiento del mejor individuo en esta generación
-    mejor_individuo_generacion = poblacion[best_individual_index(evaluaciones, tipo_problema)]
-    if tipo_problema == "min":
-        mejor_evaluacion_generacion = min(evaluaciones)
-    else:
-        mejor_evaluacion_generacion = max(evaluaciones)
-        
-        
+    mejor_individuo_generacion_index = best_individual_index(evaluaciones, tipo_problema)
+    mejor_individuo_generacion = poblacion[mejor_individuo_generacion_index]
+    mejor_evaluacion_generacion = evaluaciones[mejor_individuo_generacion_index]
 
-
-          
     # Actualización del mejor individuo global si es necesario
     if tipo_problema == "min" and mejor_evaluacion_generacion < mejor_evaluacion_global:
         mejor_individuo_global = mejor_individuo_generacion
@@ -206,14 +203,10 @@ for generacion in range(num_generaciones):
         mejor_individuo_global = mejor_individuo_generacion
         mejor_evaluacion_global = mejor_evaluacion_generacion
 
-
-
-
-    print(f"Mejor individuo en esta generación: {mejor_individuo_generacion}, f(x): {mejor_evaluacion_generacion}")
-    print(f"Mejor individuo global hasta ahora: {mejor_individuo_global}, f(x): {mejor_evaluacion_global}")
-
-
-    
+    print(
+        f"Mejor individuo en esta generación: {mejor_individuo_generacion}, f(x): {mejor_evaluacion_generacion}")
+    print(
+        f"Mejor individuo global hasta ahora: {mejor_individuo_global}, f(x): {mejor_evaluacion_global}")
 
     combinaciones_realizadas = set()
     nuevas_parejas = []
@@ -227,36 +220,37 @@ for generacion in range(num_generaciones):
     for i, pareja in enumerate(nuevas_parejas):
         print(f"Pareja {i + 1}: Padre = {pareja[0]}, Individuo = {pareja[1]}")
 
-    descendencia = crossover_multiple_points(nuevas_parejas, probabilidad_mutacion_gen, num_bits)
+    descendencia = crossover_multiple_points(
+        nuevas_parejas, probabilidad_mutacion_gen, num_bits)
 
     print("\nDescendencia después de cruza:")
     for i, ind in enumerate(descendencia):
         print(f"Descendiente {i + 1}: {ind}")
 
-    descendencia_mutada = [mutate_sequence_swap_positions(individuo, probabilidad_mutacion_individuo, probabilidad_mutacion_gen) for individuo in descendencia]
-    # Agregar nuevos individuos a la población existente
+    descendencia_mutada = [mutate_sequence_swap_positions(
+        individuo, probabilidad_mutacion_individuo, probabilidad_mutacion_gen) for individuo in descendencia]
+
     poblacion = add_new_individuals(poblacion, descendencia_mutada)
-    # Almacena el mejor individuo y su evaluación antes de la mutación
-    mejor_individuo_antes_mutacion = poblacion[best_individual_index(evaluaciones, tipo_problema)]
-    mejor_evaluacion_antes_mutacion = min(evaluaciones) if tipo_problema == "min" else max(evaluaciones)
 
+    mejor_individuo_antes_mutacion_index = best_individual_index(
+        evaluaciones, tipo_problema)
+    mejor_individuo_antes_mutacion = poblacion[mejor_individuo_antes_mutacion_index]
+    mejor_evaluacion_antes_mutacion = evaluaciones[mejor_individuo_antes_mutacion_index]
 
-        # Evalúa la descendencia mutada
-    evaluaciones_descendencia_mutada = [evaluar_individuo(individuo, a, delta_x, tipo_problema) for individuo in descendencia_mutada]
+    evaluaciones_descendencia_mutada = [evaluar_individuo(
+        individuo, a, delta_x, tipo_problema) for individuo in descendencia_mutada]
 
-    # Encuentra el mejor individuo después de la mutación
-    mejor_individuo_despues_mutacion = descendencia_mutada[best_individual_index(evaluaciones_descendencia_mutada, tipo_problema)]
-    mejor_evaluacion_despues_mutacion = min(evaluaciones_descendencia_mutada) if tipo_problema == "min" else max(evaluaciones_descendencia_mutada)
+    mejor_individuo_despues_mutacion_index = best_individual_index(
+        evaluaciones_descendencia_mutada, tipo_problema)
+    mejor_individuo_despues_mutacion = descendencia_mutada[mejor_individuo_despues_mutacion_index]
+    mejor_evaluacion_despues_mutacion = evaluaciones_descendencia_mutada[mejor_individuo_despues_mutacion_index]
 
-    # Conserva el mejor individuo entre antes y después de la mutación
     if tipo_problema == "min" and mejor_evaluacion_despues_mutacion < mejor_evaluacion_antes_mutacion:
         mejor_individuo_global = mejor_individuo_despues_mutacion
         mejor_evaluacion_global = mejor_evaluacion_despues_mutacion
     elif tipo_problema == "max" and mejor_evaluacion_despues_mutacion > mejor_evaluacion_antes_mutacion:
-       mejor_individuo_global = mejor_individuo_despues_mutacion
-       mejor_evaluacion_global = mejor_evaluacion_despues_mutacion
-
-
+        mejor_individuo_global = mejor_individuo_despues_mutacion
+        mejor_evaluacion_global = mejor_evaluacion_despues_mutacion
 
     print("\nDescendencia después de mutación:")
     for i, individuo_mutado in enumerate(descendencia_mutada):
@@ -267,42 +261,38 @@ for generacion in range(num_generaciones):
             print(f"{i + 1}: Mutado - {individuo_mutado}, Posición (x): {round(x, 6)}, f(x): {round(f(x), 6)}, Posición Individuo: {posicion_individuo}")
         else:
             print(f"{i + 1}: No Mutado - {individuo_mutado}, Posición (x): {round(x, 6)}, f(x): {round(f(x), 6)}, Posición Individuo: {posicion_individuo}")
-    
-    # Imprimir la tabla después de agregar nuevos descendientes
-    print("\nPoblación después de mutación:")
+
+        print("\nPoblación después de mutación:")
     print("{:<10} {:<25} {:<15} {:<15} {:<15}".format(
         "ID", "Individuo", "Posicion (x)", "f(x)", "Posicion Individuo"))
 
-    for i, individuo in enumerate(poblacion):
-        x = a + bin_to_decimal(individuo) * delta_x
-        posicion_individuo = bin_to_decimal(individuo)
+    for i, individuo_mutado in enumerate(poblacion):
+        x = a + bin_to_decimal(individuo_mutado) * delta_x
+        posicion_individuo = bin_to_decimal(individuo_mutado)
+
         print("{:<10} {:<25} {:<15} {:<15} {:<15}".format(
-            i + 1, individuo, round(x, 6), round(f(x), 6), posicion_individuo))
+            i + 1, individuo_mutado, round(x, 6), round(f(x), 6), posicion_individuo))
 
-        datos_generacion = {
-            'ID': i + 1,
-            'Individuo': individuo,
-            'I': posicion_individuo,
-            'x': round(x, 6),
-            'f(x)': round(f(x), 6)
-        }
+    datos_generacion = {
+        'ID': generacion + 1,
+        'Individuo': mejor_individuo_generacion,
+        'I': bin_to_decimal(mejor_individuo_generacion),
+        'x': round(a + bin_to_decimal(mejor_individuo_generacion) * delta_x, 6),
+        'f(x)': mejor_evaluacion_generacion
+    }
 
-        datos_estadisticos.append(datos_generacion)
+    datos_estadisticos.append(datos_generacion)
 
-    # DataFrame 
     df = pd.DataFrame(datos_estadisticos)
-    
+
     if generacion == 0:
-        # Guardar la generación 1 en el primer ciclo
         df.to_csv('datos_estadisticos_geneticos.csv', index=False)
     else:
-        # Agregar las nuevas generaciones mutadas
-        df.to_csv('datos_estadisticos_geneticos.csv', mode='a', header=False, index=False)
-   
-    # Poda de la población después de la mutación
-    poblacion = prune_population(poblacion, evaluaciones, poblacion_maxima)
+        df.to_csv('datos_estadisticos_geneticos.csv',
+                  mode='a', header=False, index=False)
 
-    # Imprimir la tabla después de la poda
+    poblacion = prune_population(poblacion, evaluaciones, poblacion_maxima, tipo_problema)
+
     print("\nPoblación después de la poda:")
     print("{:<10} {:<25} {:<15} {:<15} {:<15}".format(
         "ID", "Individuo", "Posicion (x)", "f(x)", "Posicion Individuo"))
@@ -313,21 +303,20 @@ for generacion in range(num_generaciones):
         print("{:<10} {:<25} {:<15} {:<15} {:<15}".format(
             i + 1, individuo, round(x, 6), round(f(x), 6), posicion_individuo))
 
-
-
-# Después de todas las generaciones, imprimir el mejor individuo global
 print("\nMejor individuo después de todas las generaciones:")
 print("{:<10} {:<25} {:<15} {:<15}".format(
     "ID", "Individuo", "Posición (x)", "f(x)"))
 
-# Ajusta la impresión según el tipo de problema
 if mejor_individuo_global is not None:
     x_mejor_global = a + bin_to_decimal(mejor_individuo_global) * delta_x
-    resultado_mejor_global = evaluar_individuo(mejor_individuo_global, a, delta_x, tipo_problema)
+    resultado_mejor_global = evaluar_individuo(
+        mejor_individuo_global, a, delta_x, tipo_problema)
 
     if tipo_problema == "min":
-        print("{:<10} {:<25} {:<15} {:<15}".format(1, mejor_individuo_global, round(x_mejor_global, 6), resultado_mejor_global))
-    else:
-        print("{:<10} {:<25} {:<15} {:<15}".format(1, mejor_individuo_global, round(x_mejor_global, 6), -resultado_mejor_global))
+        print("{:<10} {:<25} {:<15} {:<15}".format(
+            1, mejor_individuo_global, round(x_mejor_global, 6), resultado_mejor_global))
+    elif tipo_problema == "max":
+        print("{:<10} {:<25} {:<15} {:<15}".format(
+            1, mejor_individuo_global, round(x_mejor_global, 6), resultado_mejor_global))  # Invertir el signo para maximización
 else:
     print("\nLa población está vacía después de todas las generaciones.")
