@@ -125,8 +125,7 @@ def mutate_sequence_swap_positions(individuo, prob_mut_individuo, prob_mut_gen):
                 print(f"Posición aleatoria para intercambio: {posicion1}")
 
                 individuo_mutado = list(individuo_mutado)
-                individuo_mutado[bits_intercambiados], individuo_mutado[
-                    posicion1] = individuo_mutado[posicion1], individuo_mutado[bits_intercambiados]
+                individuo_mutado[bits_intercambiados], individuo_mutado[posicion1] = individuo_mutado[posicion1], individuo_mutado[bits_intercambiados]
                 individuo_mutado = ''.join(individuo_mutado)
 
             print(
