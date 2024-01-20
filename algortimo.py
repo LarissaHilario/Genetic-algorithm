@@ -135,14 +135,14 @@ def best_individual_index(evaluaciones, tipo_problema):
     else:
         return evaluaciones.index(max(evaluaciones))
 
-def plot_population(todas_generaciones, a, b, delta_x, f, mejor_individuo_global, evolucion_mejor, evolucion_promedio, evolucion_peor):
+def plot_population(todas_generaciones, a, b, delta_x, f, mejor_individuo_global, evolucion_mejor, evolucion_promedio, evolucion_peor, tipo_problema):
     # Crear puntos x y y para la función objetivo
     x_vals = np.arange(1, len(todas_generaciones) + 1)  # Números de generación en el eje x
 
     # Obtener los valores de fitness para cada generación
-    fitness_mejor = [min([f(a + bin_to_decimal(individuo) * delta_x) for individuo in generacion]) for generacion in todas_generaciones]
+    fitness_mejor = [min([f(a + bin_to_decimal(individuo) * delta_x) for individuo in generacion]) if tipo_problema == "min" else max([f(a + bin_to_decimal(individuo) * delta_x) for individuo in generacion]) for generacion in todas_generaciones]
     fitness_promedio = [np.mean([f(a + bin_to_decimal(individuo) * delta_x) for individuo in generacion]) for generacion in todas_generaciones]
-    fitness_peor = [max([f(a + bin_to_decimal(individuo) * delta_x) for individuo in generacion]) for generacion in todas_generaciones]
+    fitness_peor = [max([f(a + bin_to_decimal(individuo) * delta_x) for individuo in generacion]) if tipo_problema == "min" else min([f(a + bin_to_decimal(individuo) * delta_x) for individuo in generacion]) for generacion in todas_generaciones]
 
     # Añadir los valores a las listas de evolución
     evolucion_mejor.append(fitness_mejor)
@@ -167,6 +167,7 @@ def plot_population(todas_generaciones, a, b, delta_x, f, mejor_individuo_global
 
     # Mostrar la gráfica
     plt.show()
+
 
 
 
@@ -318,6 +319,6 @@ def run_genetic_algorithm(poblacion_minima, poblacion_maxima, prob_mut_individuo
             print("{:<10} {:<25} {:<15} {:<15} {:<15}".format(
                 i + 1, individuo, round(x, 6), round(f(x), 6), posicion_individuo))
         # Llamar a la función plot_population con el mejor individuo global
-    plot_population(todas_generaciones, a, b, delta_x, f, mejor_individuo_global, evolucion_mejor, evolucion_promedio, evolucion_peor)
+    plot_population(todas_generaciones, a, b, delta_x, f, mejor_individuo_global, evolucion_mejor, evolucion_promedio, evolucion_peor, tipo_problema)
 
             
