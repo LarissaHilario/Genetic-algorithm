@@ -83,7 +83,7 @@ def crossover_multiple_points(nuevas_parejas, prob_mut_gen, num_bits):
 
         descendencia.extend([subcadena_padre, subcadena_individuo])
 
-        print(f"Pareja {i + 1}: Cortes en posición {posiciones_cortes} de Padre ({padre}) e Individuo ({individuo}) con {num_cortes} cortes")
+        
 
     return descendencia
 
@@ -111,15 +111,9 @@ def mutate_sequence_swap_positions(individuo, prob_mut_individuo, prob_mut_gen):
                     posicion1] = individuo_mutado[posicion1], individuo_mutado[bits_intercambiados]
                 individuo_mutado = ''.join(individuo_mutado)
 
-            print(
-                f"Individuo original: {individuo_original}, Individuo mutado: {individuo_mutado}, Bits intercambiados: {', '.join(map(str, posiciones_mutadas))}")
-        else:
-            print(
-                f"Individuo original: {individuo_original}, No ocurrió mutación de genes")
+            
     else:
         individuo_mutado = individuo_original
-        print(
-            f"Individuo original: {individuo_original}, No ocurrió mutación de individuo")
 
     return individuo_mutado
 
@@ -193,42 +187,38 @@ def plot_population(todas_generaciones, a, b, delta_x, f, mejor_individuo_global
     # Mostrar la gráfica
     plt.show()
 
+def plot_population_by_generation_custom(individuos_generacion, a, b, delta_x, f, mejor_individuo_global, evolucion_mejor, evolucion_promedio, evolucion_peor, tipo_problema, poblacion_maxima):
+    num_generaciones = len(individuos_generacion)
 
-def plot_population_by_generation_custom(todas_generaciones, a, b, delta_x, f, mejor_individuo_global, evolucion_mejor, evolucion_promedio, evolucion_peor, tipo_problema, poblacion_maxima):
-    num_generaciones = len(todas_generaciones)
-
-    # Calcular los valores de la función objetivo para un rango más amplio
-    x_vals_funcion_objetivo = np.linspace(
-        a - 0.1 * (b - a), b + 0.1 * (b - a), 1000)
-    y_vals_funcion_objetivo = [f(x) for x in x_vals_funcion_objetivo]
 
     for generacion in range(num_generaciones):
+        # Calcular los valores de la función objetivo para un rango más amplio
+        x_vals_funcion_objetivo = np.linspace(
+            a - 0.1 * (b - a), b + 0.1 * (b - a), 1000)
+        y_vals_funcion_objetivo = [f(x) for x in x_vals_funcion_objetivo]
+
+        # Graficar la función objetivo una sola vez
+        plt.plot(x_vals_funcion_objetivo, y_vals_funcion_objetivo,
+                label='Función Objetivo', color='gray', linestyle='--')
         # Obtener la población de la generación actual (después de la mutación)
-        poblacion = todas_generaciones[generacion]
+        poblacion = individuos_generacion[generacion]
 
         # Obtener los valores de la función para cada individuo en la generación actual
         x_vals_generacion = [
             a + bin_to_decimal(str(individuo)) * delta_x for individuo in poblacion]
         y_vals_generacion = [f(x) for x in x_vals_generacion]
 
-        plt.plot(x_vals_funcion_objetivo, y_vals_funcion_objetivo,
-                 label='Función Objetivo', color='gray', linestyle='--')
+        # Superponer los individuos de la generación actual
         plt.scatter(x_vals_generacion, y_vals_generacion,
-                    label=f'Generación {generacion + 1} - Individuos', color='green', marker='o')
+                    label=f'Generación {generacion + 1} - Individuos', marker='o')
 
-        # Resaltar el mejor, promedio y peor de la generación actual
+        # Resaltar el mejor y el peor de la generación actual
         mejor_individuo_generacion_index = best_individual_index(
             [f(a + bin_to_decimal(individuo) * delta_x) for individuo in poblacion], tipo_problema)
         mejor_individuo_generacion = poblacion[mejor_individuo_generacion_index]
         mejor_x = a + bin_to_decimal(mejor_individuo_generacion) * delta_x
         plt.scatter(mejor_x, f(mejor_x), color='red', marker='*',
                     label=f'Mejor Individuo - Gen {generacion + 1}')
-
-        promedio_fitness = np.mean(
-            [f(a + bin_to_decimal(individuo) * delta_x) for individuo in poblacion])
-        plt.axhline(y=promedio_fitness, color='blue', linestyle='-',
-                    label=f'Promedio Generación {generacion + 1}')
-
 
         peor_individuo_generacion_index = best_individual_index(
             [f(a + bin_to_decimal(individuo) * delta_x) for individuo in poblacion], "max" if tipo_problema == "min" else "min")
@@ -237,16 +227,22 @@ def plot_population_by_generation_custom(todas_generaciones, a, b, delta_x, f, m
         plt.scatter(peor_x, f(peor_x), color='orange', marker='v',
                     label=f'Peor Individuo - Gen {generacion + 1}')
 
+        # Anotar cada individuo en la gráfica
+        for i, (x, y) in enumerate(zip(x_vals_generacion, y_vals_generacion)):
+            plt.annotate(f'Gen {generacion + 1} - Ind {i + 1}', (x, y),
+                         textcoords="offset points", xytext=(0, 10), ha='center')
+
+        # Configuraciones adicionales
         plt.xlabel('x')
         plt.ylabel('f(x)')
         plt.legend()
-        plt.title(
-            f' población de individuos - Generación {generacion + 1}')
+        plt.title(f'Población de individuos - Generación {generacion + 1}')
 
-        
         # Guardar o mostrar la gráfica según tus necesidades
         plt.savefig(f'generacion_{generacion + 1}.png')
         plt.show()
+
+
 
 
 
@@ -263,6 +259,7 @@ def run_genetic_algorithm(poblacion_minima, poblacion_maxima, prob_mut_individuo
     num_saltos = rango/delta_x
     numero_de_puntos = num_saltos + 1
     todas_generaciones = []
+    des_mut=[]
     datos_estadisticos = []
     probabilidad_mutacion_individuo = prob_mut_individuo
     probabilidad_mutacion_gen = prob_mut_gen
@@ -345,6 +342,8 @@ def run_genetic_algorithm(poblacion_minima, poblacion_maxima, prob_mut_individuo
 
         # Agregar nuevos individuos a la población existente
         poblacion = add_new_individuals(poblacion, descendencia_mutada)
+        
+        des_mut.append(poblacion.copy())
 
         print("\nDescendencia después de mutación:")
         for i, individuo_mutado in enumerate(descendencia_mutada):
@@ -414,5 +413,5 @@ def run_genetic_algorithm(poblacion_minima, poblacion_maxima, prob_mut_individuo
     plot_population(todas_generaciones, a, b, delta_x, f, mejor_individuo_global,
                     evolucion_mejor, evolucion_promedio, evolucion_peor, tipo_problema)
     # Llamar a la función plot_population_by_generation_custom con el mejor individuo global
-    plot_population_by_generation_custom(todas_generaciones, a, b, delta_x, f, mejor_individuo_global,
+    plot_population_by_generation_custom(des_mut, a, b, delta_x, f, mejor_individuo_global,
                                          evolucion_mejor, evolucion_promedio, evolucion_peor, tipo_problema, poblacion_maxima)
