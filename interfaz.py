@@ -128,10 +128,6 @@ class MiVentana(CTk):
     def set_minimo(self):
         self.resolucion_tipo = "min"
 
-
-        #RANGO
-
-
     def ejecutar_algoritmo_genetico(self):
         # Obtener los valores ingresados por el usuario desde la interfaz
         poblacion_minima = int(self.entrada_pob_min.get())
