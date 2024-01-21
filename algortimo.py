@@ -82,9 +82,6 @@ def crossover_multiple_points(nuevas_parejas, prob_mut_gen, num_bits):
             alternar = not alternar
 
         descendencia.extend([subcadena_padre, subcadena_individuo])
-
-        
-
     return descendencia
 
 
@@ -110,8 +107,6 @@ def mutate_sequence_swap_positions(individuo, prob_mut_individuo, prob_mut_gen):
                 individuo_mutado[bits_intercambiados], individuo_mutado[
                     posicion1] = individuo_mutado[posicion1], individuo_mutado[bits_intercambiados]
                 individuo_mutado = ''.join(individuo_mutado)
-
-            
     else:
         individuo_mutado = individuo_original
 
@@ -185,6 +180,7 @@ def plot_population(todas_generaciones, a, b, delta_x, f, mejor_individuo_global
             f' evolución de la aptitud de la población ')
 
     # Mostrar la gráfica
+    plt.savefig(f'grafica.png')
     plt.show()
 
 def plot_population_by_generation_custom(individuos_generacion, a, b, delta_x, f, mejor_individuo_global, evolucion_mejor, evolucion_promedio, evolucion_peor, tipo_problema, poblacion_maxima):
@@ -227,11 +223,7 @@ def plot_population_by_generation_custom(individuos_generacion, a, b, delta_x, f
         plt.scatter(peor_x, f(peor_x), color='orange', marker='v',
                     label=f'Peor Individuo - Gen {generacion + 1}')
 
-        # Anotar cada individuo en la gráfica
-        for i, (x, y) in enumerate(zip(x_vals_generacion, y_vals_generacion)):
-            plt.annotate(f'Gen {generacion + 1} - Ind {i + 1}', (x, y),
-                         textcoords="offset points", xytext=(0, 10), ha='center')
-
+       
         # Configuraciones adicionales
         plt.xlabel('x')
         plt.ylabel('f(x)')
@@ -354,7 +346,23 @@ def run_genetic_algorithm(poblacion_minima, poblacion_maxima, prob_mut_individuo
                 print(f"{i + 1}: Mutado - {individuo_mutado}, Posición (x): {round(x, 6)}, f(x): {round(f(x), 6)}, Posición Individuo: {posicion_individuo}")
             else:
                 print(f"{i + 1}: No Mutado - {individuo_mutado}, Posición (x): {round(x, 6)}, f(x): {round(f(x), 6)}, Posición Individuo: {posicion_individuo}")
+        # Guardar los datos después de la poda en cada generación
+        datos_generacion = {
+            'ID': list(range(1, len(poblacion) + 1)),
+            'Individuo': poblacion,
+            'I': [bin_to_decimal(individuo) for individuo in poblacion],
+            'x': [a + bin_to_decimal(individuo) * delta_x for individuo in poblacion],
+            'f(x)': [f(a + bin_to_decimal(individuo) * delta_x) for individuo in poblacion]
+        }
 
+        df_generacion = pd.DataFrame(datos_generacion)
+
+        if generacion == 0:
+            # Guardar la generación 0 en el primer ciclo
+            df_generacion.to_csv(f'datos_estadisticos_geneticos_gen{generacion + 1}.csv', index=False)
+        else:
+            # Agregar las nuevas generaciones mutadas
+            df_generacion.to_csv(f'datos_estadisticos_geneticos_gen{generacion + 1}.csv', index=False)
         # Imprimir la tabla después de agregar nuevos descendientes
         print("\nPoblación después de mutación:")
         print("{:<10} {:<25} {:<15} {:<15} {:<15}".format(
@@ -365,7 +373,7 @@ def run_genetic_algorithm(poblacion_minima, poblacion_maxima, prob_mut_individuo
             posicion_individuo = bin_to_decimal(individuo)
             print("{:<10} {:<25} {:<15} {:<15} {:<15}".format(
                 i + 1, individuo, round(x, 6), round(f(x), 6), posicion_individuo))
-            datos_generacion = {
+            '''datos_generacion = {
                 'ID': i + 1,
                 'Individuo': individuo,
                 'I': posicion_individuo,
@@ -385,10 +393,10 @@ def run_genetic_algorithm(poblacion_minima, poblacion_maxima, prob_mut_individuo
             else:
                 # Agregar las nuevas generaciones mutadas
                 df.to_csv('datos_estadisticos_geneticos.csv',
-                        mode='a', header=False, index=False)
+                        mode='a', header=False, index=False)'''
         poblacion = prune_population(
             poblacion, evaluaciones, poblacion_maxima, tipo_problema)
-
+        
         # Append data for each generation
         evolucion_mejor.append([min([f(a + bin_to_decimal(individuo) * delta_x)
                                for individuo in generacion]) for generacion in todas_generaciones])
