@@ -1,7 +1,7 @@
 from customtkinter import CTk, CTkLabel
 from customtkinter import *
-from algortimo import run_genetic_algorithm
-from algortimo import  generate_video
+from algoritmo.algortimo import run_genetic_algorithm
+from algoritmo.algortimo import generate_video
 class MiVentana(CTk):
 
     button_a_enabled = True
@@ -15,7 +15,7 @@ class MiVentana(CTk):
         # Personalizar la apariencia de la ventana
         self.title("Algoritmos Geneticos")
         self.geometry("660x440")  # Tamaño inicial de la ventana
-        self.resizable(False, False)  # Evitar que se redimensione        
+        self.resizable(False, False)  # Evitar que se redimensione
 
         labelResolucion = CTkLabel(self, text="Resolución", text_color="#FF6EE5")
         labelResolucion.place(x=200, y=20)
@@ -25,7 +25,7 @@ class MiVentana(CTk):
         labelReso.place(x=40, y=60)
         labelReso.configure(font=("TkDefaultFont", 12, "bold"))
 
-        self.entrada_resolucion = CTkEntry(self, placeholder_text="Resolución", border_color="#FF85E9", placeholder_text_color="#FFAFF1")
+        self.entrada_resolucion = CTkEntry(self, placeholder_text="Resolución", border_color="#FF85E9", placeholder_text_color="#FFAFF1", fg_color="#FFFFFF", text_color="#000000")
         self.entrada_resolucion.place(x=120, y=60)
         self.entrada_resolucion.configure(width=220, height=25)
 
@@ -55,9 +55,6 @@ class MiVentana(CTk):
                 boton_minimo.configure(state="normal")
                 labelSeleccionMaximo.configure(text="")
        
-
-       
-
         boton_maximo.configure(command=on_button_a_click)
 
         def on_button_b_click():
@@ -85,7 +82,7 @@ class MiVentana(CTk):
         labelPob_Min.place(x=80, y=185)
         labelPob_Min.configure(font=("TkDefaultFont", 12, "bold"))
 
-        self.entrada_pob_min = CTkEntry(self, placeholder_text="Población Min.", border_color="#FF85E9", placeholder_text_color="#FFAFF1")
+        self.entrada_pob_min = CTkEntry(self, placeholder_text="Población Min.", border_color="#FF85E9", placeholder_text_color="#FFAFF1", fg_color="#FFFFFF", text_color="#000000")
         self.entrada_pob_min.place(x=165, y=185)
         self.entrada_pob_min.configure(width=175, height=25)
 
@@ -102,7 +99,7 @@ class MiVentana(CTk):
         labelPob_Max.place(x=80, y=225)
         labelPob_Max.configure(font=("TkDefaultFont", 12, "bold"))
 
-        self.entrada_pob_max = CTkEntry(self, placeholder_text="Población Max.", border_color="#FF85E9", placeholder_text_color="#FFAFF1")
+        self.entrada_pob_max = CTkEntry(self, placeholder_text="Población Max.", border_color="#FF85E9", placeholder_text_color="#FFAFF1", fg_color="#FFFFFF", text_color="#000000")
         self.entrada_pob_max.place(x=165, y=225)
         self.entrada_pob_max.configure(width=175, height=25)
             
@@ -117,7 +114,7 @@ class MiVentana(CTk):
         labelMut_Ind.place(x=380, y=185)
         labelMut_Ind.configure(font=("TkDefaultFont", 12, "bold"))
 
-        self.entrada_mut_ind = CTkEntry(self, placeholder_text="%Mut. Ind.", border_color="#FF85E9", placeholder_text_color="#FFAFF1")
+        self.entrada_mut_ind = CTkEntry(self, placeholder_text="%Mut. Ind.", border_color="#FF85E9", placeholder_text_color="#FFAFF1", fg_color="#FFFFFF", text_color="#000000")
         self.entrada_mut_ind.place(x=450, y=185)
         self.entrada_mut_ind.configure(width=170, height=25)
 
@@ -125,7 +122,7 @@ class MiVentana(CTk):
         labelMut_gen.place(x=380, y=225)
         labelMut_gen.configure(font=("TkDefaultFont", 12, "bold"))
 
-        self.entrada_mut_gen = CTkEntry(self, placeholder_text="%Mut. Gen.", border_color="#FF85E9", placeholder_text_color="#FFAFF1")
+        self.entrada_mut_gen = CTkEntry(self, placeholder_text="%Mut. Gen.", border_color="#FF85E9", placeholder_text_color="#FFAFF1", fg_color="#FFFFFF", text_color="#000000")
         self.entrada_mut_gen.place(x=450, y=225)
         self.entrada_mut_gen.configure(width=170, height=25)
 
@@ -139,7 +136,7 @@ class MiVentana(CTk):
         label_A.place(x=410, y=60)
         label_A.configure(font=("TkDefaultFont", 12, "bold"))
 
-        self.entrada_a = CTkEntry(self, placeholder_text="A", border_color="#FF85E9", placeholder_text_color="#FFAFF1")
+        self.entrada_a = CTkEntry(self, placeholder_text="A", border_color="#FF85E9", placeholder_text_color="#FFAFF1", fg_color="#FFFFFF", text_color="#000000")
         self.entrada_a.place(x=430, y=60)
         self.entrada_a.configure(width=80, height=25)
 
@@ -147,7 +144,7 @@ class MiVentana(CTk):
         label_B.place(x=520, y=60)
         label_B.configure(font=("TkDefaultFont", 12, "bold"))
 
-        self.entrada_b = CTkEntry(self, placeholder_text="B", border_color="#FF85E9", placeholder_text_color="#FFAFF1")
+        self.entrada_b = CTkEntry(self, placeholder_text="B", border_color="#FF85E9", placeholder_text_color="#FFAFF1", fg_color="#FFFFFF", text_color="#000000")
         self.entrada_b.place(x=540, y=60)
         self.entrada_b.configure(width=80, height=25)
 
@@ -161,7 +158,7 @@ class MiVentana(CTk):
         labelIteraciones.place(x=200, y=320)
         labelIteraciones.configure(font=("TkDefaultFont", 12, "bold"))
 
-        self.entrada_iteraciones = CTkEntry(self, placeholder_text="Num. iteraciones", border_color="#FF85E9", placeholder_text_color="#FFAFF1")
+        self.entrada_iteraciones = CTkEntry(self, placeholder_text="Num. iteraciones", border_color="#FF85E9", placeholder_text_color="#FFAFF1", fg_color="#FFFFFF", text_color="#000000")
         self.entrada_iteraciones.place(x=275, y=320)
         self.entrada_iteraciones.configure(width=170, height=25)
 

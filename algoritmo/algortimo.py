@@ -7,14 +7,10 @@ import os
 import imageio
 
 # Función
-
-
 def f(x):
-    return x**2 - x**2 * math.sin(math.radians(x))
+    return x**3 - 2*(x**3)*math.cos(math.radians(x)) + 3
 
 # decodificar la cadena de bits a un número decimal
-
-
 def bin_to_decimal(binary_str):
     try:
         if binary_str:
@@ -33,14 +29,10 @@ def generate_random_binary_string(length):
     return ''.join(random.choice('01') for _ in range(length))
 
 # Función para ordenar la población según las evaluaciones
-
-
 def sort_population(poblacion, evaluaciones):
     return [individuo for _, individuo in sorted(zip(evaluaciones, poblacion))]
 
 # Función para seleccionar un porcentaje de los mejores individuos como padres
-
-
 def select_parents_percentage(poblacion, evaluaciones, porcentaje, tipo_problema):
     poblacion_ordenada = sort_population(poblacion, evaluaciones)
 
@@ -181,9 +173,11 @@ def plot_population(todas_generaciones, a, b, delta_x, f, mejor_individuo_global
     plt.title(
             f' evolución de la aptitud de la población ')
 
-    # Mostrar la gráfica
+        # Guardar la gráfica
     plt.savefig(f'./utilities/grafica.png')
     plt.show()
+
+
 
 def plot_population_by_generation_custom(individuos_generacion, a, b, delta_x, f, mejor_individuo_global, evolucion_mejor, evolucion_promedio, evolucion_peor, tipo_problema, poblacion_maxima):
     num_generaciones = len(individuos_generacion)
@@ -234,7 +228,8 @@ def plot_population_by_generation_custom(individuos_generacion, a, b, delta_x, f
 
         # Guardar o mostrar la gráfica según tus necesidades
         plt.savefig(f'./utilities/generacion_{generacion + 1}.png')
-        plt.show()
+        plt.close('all')
+      
 
 
 
@@ -243,12 +238,11 @@ def generate_video(images_path, iteraciones, output_path, fps):
 
     # Obtener el número total de generaciones
     num_generaciones = iteraciones
-    # Load all images in the specified path
+    
     for i in range(1, num_generaciones + 1):
         image_path = os.path.join(images_path, f"generacion_{i}.png")
         images.append(imageio.imread(image_path))
 
-    # Calculate the duration for each frame
     frame_duration = 1 / fps
 
     # Guardar las imágenes como un video
@@ -434,10 +428,6 @@ def run_genetic_algorithm(poblacion_minima, poblacion_maxima, prob_mut_individuo
             print("{:<10} {:<25} {:<15} {:<15} {:<15}".format(
                 i + 1, individuo, round(x, 6), round(f(x), 6), posicion_individuo))
 
-        # Guardar los datos después de la poda en cada generación
-
-    plot_population(todas_generaciones, a, b, delta_x, f, mejor_individuo_global,
-                    evolucion_mejor, evolucion_promedio, evolucion_peor, tipo_problema)
-    # Llamar a la función plot_population_by_generation_custom con el mejor individuo global
-    plot_population_by_generation_custom(des_mut, a, b, delta_x, f, mejor_individuo_global,
-                                         evolucion_mejor, evolucion_promedio, evolucion_peor, tipo_problema, poblacion_maxima)
+    plot_population(todas_generaciones, a, b, delta_x, f, mejor_individuo_global, evolucion_mejor, evolucion_promedio, evolucion_peor, tipo_problema)
+    
+    plot_population_by_generation_custom(des_mut, a, b, delta_x, f, mejor_individuo_global, evolucion_mejor, evolucion_promedio, evolucion_peor, tipo_problema, poblacion_maxima)
