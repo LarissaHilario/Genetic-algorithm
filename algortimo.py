@@ -3,6 +3,8 @@ import random
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+import os
+import imageio
 
 # Función
 
@@ -180,7 +182,7 @@ def plot_population(todas_generaciones, a, b, delta_x, f, mejor_individuo_global
             f' evolución de la aptitud de la población ')
 
     # Mostrar la gráfica
-    plt.savefig(f'grafica.png')
+    plt.savefig(f'./utilities/grafica.png')
     plt.show()
 
 def plot_population_by_generation_custom(individuos_generacion, a, b, delta_x, f, mejor_individuo_global, evolucion_mejor, evolucion_promedio, evolucion_peor, tipo_problema, poblacion_maxima):
@@ -231,11 +233,27 @@ def plot_population_by_generation_custom(individuos_generacion, a, b, delta_x, f
         plt.title(f'Población de individuos - Generación {generacion + 1}')
 
         # Guardar o mostrar la gráfica según tus necesidades
-        plt.savefig(f'generacion_{generacion + 1}.png')
+        plt.savefig(f'./utilities/generacion_{generacion + 1}.png')
         plt.show()
 
 
 
+def generate_video(images_path, iteraciones, output_path, fps):
+    images = []
+
+    # Obtener el número total de generaciones
+    num_generaciones = iteraciones
+    # Load all images in the specified path
+    for i in range(1, num_generaciones + 1):
+        image_path = os.path.join(images_path, f"generacion_{i}.png")
+        images.append(imageio.imread(image_path))
+
+    # Calculate the duration for each frame
+    frame_duration = 1 / fps
+
+    # Guardar las imágenes como un video
+    video_path = output_path
+    imageio.mimsave(video_path, images, fps=fps)
 
 
 def run_genetic_algorithm(poblacion_minima, poblacion_maxima, prob_mut_individuo, prob_mut_gen, resolucion, tipo_resolucion, xa, xb, iteraciones):
@@ -359,10 +377,10 @@ def run_genetic_algorithm(poblacion_minima, poblacion_maxima, prob_mut_individuo
 
         if generacion == 0:
             # Guardar la generación 0 en el primer ciclo
-            df_generacion.to_csv(f'datos_estadisticos_geneticos_gen{generacion + 1}.csv', index=False)
+            df_generacion.to_csv(f'./data/datos_estadisticos_geneticos_gen{generacion + 1}.csv', index=False)
         else:
             # Agregar las nuevas generaciones mutadas
-            df_generacion.to_csv(f'datos_estadisticos_geneticos_gen{generacion + 1}.csv', index=False)
+            df_generacion.to_csv(f'./data/datos_estadisticos_geneticos_gen{generacion + 1}.csv', index=False)
         # Imprimir la tabla después de agregar nuevos descendientes
         print("\nPoblación después de mutación:")
         print("{:<10} {:<25} {:<15} {:<15} {:<15}".format(

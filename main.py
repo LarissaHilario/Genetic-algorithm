@@ -1,7 +1,7 @@
 from customtkinter import CTk, CTkLabel
 from customtkinter import *
 from algortimo import run_genetic_algorithm
-
+from algortimo import  generate_video
 class MiVentana(CTk):
 
     button_a_enabled = True
@@ -104,7 +104,7 @@ class MiVentana(CTk):
 
         self.entrada_pob_max = CTkEntry(self, placeholder_text="Población Max.", border_color="#FF85E9", placeholder_text_color="#FFAFF1")
         self.entrada_pob_max.place(x=165, y=225)
-        self.entrada_pob_max.configure(width=175, height=25, validate="key", validatecommand=(self.solo_numeros, "%P"))
+        self.entrada_pob_max.configure(width=175, height=25)
             
 
         #MUTACIÓN
@@ -185,6 +185,8 @@ class MiVentana(CTk):
             # Llamar a la función del algoritmo genético con los valores ingresados
             run_genetic_algorithm(poblacion_minima, poblacion_maxima, prob_mut_individuo,
                                 prob_mut_gen, resolucion, tipo_resolucion, xa, xb, iteraciones)
+            generate_video(images_path="./utilities", iteraciones= iteraciones, output_path="./utilities/evolution_video.mp4", fps=2)
+
         
         
 
